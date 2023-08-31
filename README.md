@@ -23,23 +23,38 @@
 上图创建了两台服务端程序，一个工作在6000端口，一个工作在6002端口，每新增一台服务端程序，需要将服务端程序的IP地址和端口写入nginx：stream中进行配置。
 
 整体流程：
-1.首先是安装mysql 和 mysql-client ；创建数据库：chat，在数据库chat建立了5张表
+#1.首先是安装mysql 和 mysql-client ；创建数据库：chat，在数据库chat建立了5张表
+
 user
+
 Offlinemsg
+
 Allgroup
+
 Groupuser
+
 Friend
 
+
 每张表的用途如下：
+
 User表：设置userid作为表主键，通过主键，可以存储用户的name,密码password，state用来存放User在线信息。
+
 Friend表：是一个存放用户id 和 friended 的表，这个表是将userid和friendid设置为联合主键。因为朋友之间的关系组合是唯一的。
+
 Offlinemsg表：Userid，就是哪个用户是否有离线信息，这里不设置为主键（即不唯一），让message可以存在多条。
+
 Allgroup表：Id:为群组id，唯一表示，用于给groupuser表的用户组进行管理。groupname：群组名称Groipdesc:描述群主
+
 Groupuser表：Groupid 是群主id 的联合查询，下面接着是userid,grouprole为角色。用于查找userid转发给groupid中的所有userid。
 
-2.使用cmake创建工程
+
+#2.使用cmake创建工程
+
 安装cmake(apt install cmake , apt install g++)
+
 Cmake工程建立：
+
 CMaleLists.txt
 {
 	#设置最小版本
@@ -49,29 +64,11 @@ CMaleLists.txt
 	#设置头文件搜索路径
 	#设置子文件目录
 }
-Src->的CMakeLists.txt(继续加载cpp路径)
-# 加载子目录
-add_subdirectory(server)
-add_subdirectory(client)
-server->CMakeLists.txt
-{
-# 定义了一个SRC_LIST变量，包含了该目录下所有源文件
-# 指定生成可执行文件{找main 并且搜索所有涉及的cpp}
-add_executable(ChatServer ${SRC_LIST} ${DB_LIST} ${REDIS_LIST})
-# 指定可执行文件链接时需要依赖的库文件(链接ChatServer 其他静态库)
-target_link_libraries(ChatServer muduo_net muduo_base mysqlclient hiredis pthread)
-}
-Client->CMakeList.txt
-{
-# 定义了一个SRC_LIST变量，包含了该目录下所有的源文件
-aux_source_directory(. SRC_LIST)
-# 指定生成可执行文件
-add_executable(ChatClient ${SRC_LIST})
-# 指定可执行文件链接时需要依赖的库文件
-target_link_libraries(ChatClient pthread)
-}
 
-建立：bin(存放可执行程序)
+
+
+建立工程：
+bin(存放可执行程序)
       build(存放编译过程文件)
 	  include
 	  src(资源文件)
@@ -92,11 +89,13 @@ Js = json::parse({对象 js.dump()});
 通过键来查值
 Js[“key”]返回value;
 
-2.//网络模块
+#2.网络模块
+
 网络模块完成的任务就是使用muduo建立client 和 serverd端的链接，并能通过发送和介绍js字符串。Client与Server建立连接后，Client序列化各种信息成js字符串。Server反序列化接受到的字符串成为各种信息，比如操作指令，用户id
 
 安装muduo库网络通信框架
 {
+
 安装 boost库
 sudo apt install libboost-all-dev
 
@@ -160,7 +159,7 @@ ChatServer.cpp
 	设置线程数量
 }
 
-3.业务模块 
+#3.业务模块 
 ChatService.hpp -> ChatService.cpp
 业务模块是一个单例模式对象。一个类一个实例化对象。整个进程从生到死只有一个业务对象，同一对数据模块（mysql）这部分共享管理，同一管理，反正发生数据读写混乱。
 业务模块对象构造只有一次，该对象只针对js发过的msgid操作指令进行回调
@@ -277,7 +276,7 @@ private:
 定义了一个db操作类，各各种数据表进行处理。首先是初始化数据库，然后链接数据库，执行sql语句更新操作。
 }
 
-Nginx TCP负载均衡算法：会自动将Client的程序连接到不同的服务器的程序上
+#4.Nginx TCP负载均衡算法：会自动将Client的程序连接到不同的服务器的程序上
 {
 Nginx
 安装sudo apt install nginx
@@ -301,7 +300,7 @@ stream{
 将所有服务端程序加入到nginx负载均衡器上
 }
 
-Redis 发布订阅中间件：基于观察者模式，每个服务器程序将自己的userid订阅subscribe到Redis中，充当一个观察者身份；其他通道充当被观察者身份。如果其他通道在该通道上有消息Publish，观察者就会接收到相应的信息，实现服务器之间的通信（跨服务器通信）
+#5.Redis 发布订阅中间件：基于观察者模式，每个服务器程序将自己的userid订阅subscribe到Redis中，充当一个观察者身份；其他通道充当被观察者身份。如果其他通道在该通道上有消息Publish，观察者就会接收到相应的信息，实现服务器之间的通信（跨服务器通信）
 {
 Redis 发布订阅中间件
 sudo apt install redis-server
