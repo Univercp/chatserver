@@ -49,7 +49,7 @@ Allgroup表：Id:为群组id，唯一表示，用于给groupuser表的用户组�
 Groupuser表：Groupid 是群主id 的联合查询，下面接着是userid,grouprole为角色。用于查找userid转发给groupid中的所有userid。
 
 
-#2.使用cmake创建工程
+##2.使用cmake创建工程
 
 安装cmake(apt install cmake , apt install g++)
 
