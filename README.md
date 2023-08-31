@@ -58,10 +58,15 @@ Cmake工程建立：
 CMaleLists.txt
 {
 	#设置最小版本
+ 
 	#设置编译选项
+ 
 	#设置工程目录
+ 
 	#设置可执行文件路径（输出的）
+ 
 	#设置头文件搜索路径
+ 
 	#设置子文件目录
 }
 
@@ -69,24 +74,37 @@ CMaleLists.txt
 
 建立工程：
 bin(存放可执行程序)
+
       build(存放编译过程文件)
+      
 	  include
+   
 	  src(资源文件)
+   
 	  thirdparty
+   
 	  CMakeLsits.txt
 
-Json 序列化和反序列化：
+# Json 序列化和反序列化：
+
 #include "json.hpp"
+
 using json = nlohmann::json;
 
 json js ; //生成js对象
+
 js[“{key}”] = {“value”} js对象加入键值对
+
 js.dump() js序列化成字符串
 
 反序列化
+
 Json js ;
+
 Js = json::parse({对象 js.dump()});
+
 通过键来查值
+
 Js[“key”]返回value;
 
 # 2.网络模块
