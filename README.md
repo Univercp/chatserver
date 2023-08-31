@@ -12,7 +12,7 @@
 ⚫ 使用基于发布-订阅的服务器中间件，实现 Redis 消息队列处理实时消息的发布、订阅和分发，增强系统实时通信能力。
 
 效果展示：
-![image]([https://github.com/Univercp/chatserver/src/github.png](https://github.com/Univercp/chatserver/blob/main/src/github.png))
+![替代文本](https://github.com/Univercp/chatserver/blob/main/src/github.png)
 
 
 整体流程：
