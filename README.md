@@ -19,6 +19,8 @@
 ![替代文本](https://github.com/Univercp/chatserver/blob/main/src/github.png)
 
 
+上图创建了两台服务端程序，一个工作在6000端口，一个工作在6002端口，每新增一台服务端程序，需要将服务端程序的IP地址和端口写入nginx：stream中进行配置。
+
 整体流程：
 1.首先是安装mysql 和 mysql-client ；创建数据库：chat，在数据库chat建立了5张表
 user
@@ -26,24 +28,13 @@ Offlinemsg
 Allgroup
 Groupuser
 Friend
-每张表的用途如下：
-User,设置userid作为表主键，通过主键，可以存储用户的name,密码password，state用来存放User在线信息。
- 
-Friend表：
-是一个存放用户id 和 friended 的表，这个表是将userid和friendid设置为联合主键。因为朋友之间的关系组合是唯一的。
- 
-Offlinemsg表：
-Userid，就是哪个用户是否有离线信息，这里不设置为主键（即不唯一），让message可以存在多条。
- 
-Allgroup表：
- 
-Id:为群组id，唯一表示，用于给groupuser表的用户组进行管理。
-groupname：群组名称
-Groipdesc:描述群主
 
-Groupuser表：
- 
-Groupid 是群主id 的联合查询，下面接着是userid,grouprole为角色。用于查找userid转发给groupid中的所有userid。
+每张表的用途如下：
+User表：设置userid作为表主键，通过主键，可以存储用户的name,密码password，state用来存放User在线信息。
+Friend表：是一个存放用户id 和 friended 的表，这个表是将userid和friendid设置为联合主键。因为朋友之间的关系组合是唯一的。
+Offlinemsg表：Userid，就是哪个用户是否有离线信息，这里不设置为主键（即不唯一），让message可以存在多条。
+Allgroup表：Id:为群组id，唯一表示，用于给groupuser表的用户组进行管理。groupname：群组名称Groipdesc:描述群主
+Groupuser表：Groupid 是群主id 的联合查询，下面接着是userid,grouprole为角色。用于查找userid转发给groupid中的所有userid。
 
 2.使用cmake创建工程
 安装cmake(apt install cmake , apt install g++)
@@ -51,23 +42,11 @@ Cmake工程建立：
 CMaleLists.txt
 {
 	#设置最小版本
-cmake_minimum_required(VERSION 3.0)
 	#设置编译选项
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -g)	
-#设置工程目录
-project(chat)
+	#设置工程目录
 	#设置可执行文件路径（输出的）
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 	#设置头文件搜索路径
-include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/include/server)
-include_directories(${PROJECT_SOURCE_DIR}/include/server/db)
-include_directories(${PROJECT_SOURCE_DIR}/include/server/model)
-include_directories(${PROJECT_SOURCE_DIR}/include/server/redis)
-include_directories(${PROJECT_SOURCE_DIR}/thidrparty)
 	#设置子文件目录
-add_subdirectory(src)
-（需要编译的cpp文件）
 }
 Src->的CMakeLists.txt(继续加载cpp路径)
 # 加载子目录
@@ -75,27 +54,20 @@ add_subdirectory(server)
 add_subdirectory(client)
 server->CMakeLists.txt
 {
-	# 定义了一个SRC_LIST变量，包含了该目录下所有源文件
-aux_source_directory(. SRC_LIST)
-aux_source_directory(./db DB_LIST)
-aux_source_directory(./model DB_LIST)
-aux_source_directory(./redis REDIS_LIST)
+# 定义了一个SRC_LIST变量，包含了该目录下所有源文件
 # 指定生成可执行文件{找main 并且搜索所有涉及的cpp}
 add_executable(ChatServer ${SRC_LIST} ${DB_LIST} ${REDIS_LIST})
 # 指定可执行文件链接时需要依赖的库文件(链接ChatServer 其他静态库)
 target_link_libraries(ChatServer muduo_net muduo_base mysqlclient hiredis pthread)
-
 }
 Client->CMakeList.txt
 {
-	# 定义了一个SRC_LIST变量，包含了该目录下所有的源文件
+# 定义了一个SRC_LIST变量，包含了该目录下所有的源文件
 aux_source_directory(. SRC_LIST)
-
 # 指定生成可执行文件
 add_executable(ChatClient ${SRC_LIST})
 # 指定可执行文件链接时需要依赖的库文件
 target_link_libraries(ChatClient pthread)
-
 }
 
 建立：bin(存放可执行程序)
@@ -105,37 +77,6 @@ target_link_libraries(ChatClient pthread)
 	  thirdparty
 	  CMakeLsits.txt
 
-整个工程目录：
-CMakeLists.txt
-Bin-
-Build- Makefiles
-Include 
--	Server ---------db-db.h
-	Redis –redis.hpp
-	-model-----------User.hpp
-	Usermodel.hpp
-	Offlinemessagemodel.hpp
-	Friendmodel.hpp
-	Group_user.hpp
-	Group.hpp
-
-	Chatserver.hpp
-	Chatservice.hpp
--	Public.hpp
-Src     – client------main
-    --  CMakeLists.txt
--	Server ---------db-db.h
-	Redis -  redis.cpp
-	-model-----------User.cpp
-	Usermodel.cpp
-	Offlinemessagemodel.cpp
-	Friendmodel.cpp
-	Group_user.cpp
-	Group.cpp
-	Chatserver.cpp
-	Chatservice.cpp
-	CMakeList.txt
-Thirdparty---------json.hpp
 Json 序列化和反序列化：
 #include "json.hpp"
 using json = nlohmann::json;
@@ -328,8 +269,6 @@ private:
 	
 一对一聊天业务：
 查看对方是否在线，在线的话，通过用户在线的一个map,找到对放的TCP链接，然后转发信息给该用户。若是对方没在线，就将信息存放在离线信息表。表中有字段是userid和messages,当该用户再次上线时，会自动向该表提取信息，并删除离线信息。
-
-
 }
 
 {
@@ -337,6 +276,7 @@ private:
 定义了一个db操作类，各各种数据表进行处理。首先是初始化数据库，然后链接数据库，执行sql语句更新操作。
 }
 
+Nginx TCP负载均衡算法：会自动将Client的程序连接到不同的服务器的程序上
 {
 Nginx
 安装sudo apt install nginx
@@ -360,9 +300,11 @@ stream{
 将所有服务端程序加入到nginx负载均衡器上
 }
 
+Redis 发布订阅中间件：基于观察者模式，每个服务器程序将自己的userid订阅subscribe到Redis中，充当一个观察者身份；其他通道充当被观察者身份。如果其他通道在该通道上有消息Publish，观察者就会接收到相应的信息，实现服务器之间的通信（跨服务器通信）
 {
 Redis 发布订阅中间件
 sudo apt install redis-server
 将userid作为每一个通道，链接不同服务器，实现服务器之间的低耦合链接，提供一个高质量的多服务器程序通信。
 }
 
+小结：Resdis发布订阅器和nginx的Tcp负载均衡，这两个中间件是提升系统的并发能力的。将一台服务器上的链接压力分发到多台（Nginx负载均衡器），分发后实现服务器通信（Redis）.网络通信模块使用 Muduo库，自动监听连接IO事件（EVentloop），监听到的链接事件分发给worker（回调指令->业务模块），业务模块根据指令实现：注册，登录，下线，一对一聊天，创建/加入群/群聊，离线聊天->数据模块（db.h数据库连接与更新）。
