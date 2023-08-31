@@ -12,6 +12,8 @@
 ⚫ 使用基于发布-订阅的服务器中间件，实现 Redis 消息队列处理实时消息的发布、订阅和分发，增强系统实时通信能力。
 
 效果展示：
+![image](https://github.com/Univercp/chatserver/src/github.png)
+
 
 整体流程：
 1.首先是安装mysql 和 mysql-client ；创建数据库：chat，在数据库chat建立了5张表
